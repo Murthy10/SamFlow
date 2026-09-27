@@ -20,8 +20,8 @@ extension SessionOutcome {
 
     var tint: Color {
         switch self {
-        case .achieved: .green
-        case .missed: .orange
+        case .achieved: .flowSuccess
+        case .missed: .flowAccent
         case .abandoned: .secondary
         }
     }

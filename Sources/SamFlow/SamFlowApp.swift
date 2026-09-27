@@ -16,13 +16,15 @@ struct SamFlowApp: App {
         Window("Focus", id: WindowID.focus) {
             FocusWindowView(controller: controller)
         }
+        .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
-        .defaultSize(width: 420, height: 280)
+        .defaultSize(width: 420, height: 340)
 
         Window("History", id: WindowID.history) {
             HistoryView(controller: controller)
         }
-        .defaultSize(width: 460, height: 420)
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 460, height: 440)
     }
 }
 

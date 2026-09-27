@@ -6,6 +6,11 @@ import SwiftUI
 /// concrete store and ticker the app runs with, and the only place that reacts
 /// to domain events with AppKit calls.
 enum AppEnvironment {
+    /// Retained for the app's lifetime — nothing else holds a reference to it,
+    /// and its overlay windows must outlive every screen it draws on.
+    @MainActor
+    private static var borderController: ScreenBorderController?
+
     /// Builds the one controller the whole app shares, fully wired. Called once,
     /// when the `App` value is created — never from a view's lifecycle, so the
     /// wiring does not depend on which window happens to open first.
@@ -34,6 +39,8 @@ enum AppEnvironment {
         } catch {
             NSLog("SamFlow: could not read session history — \(error)")
         }
+
+        borderController = ScreenBorderController(observing: controller)
         return controller
     }
 

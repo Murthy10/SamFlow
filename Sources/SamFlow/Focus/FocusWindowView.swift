@@ -17,7 +17,7 @@ struct FocusWindowView: View {
                 ReviewView(controller: controller, session: session)
             }
         }
-        .frame(minWidth: 380, minHeight: 260)
+        .frame(minWidth: 400, minHeight: 320)
         .animation(.smooth(duration: 0.2), value: controller.phase)
     }
 }
