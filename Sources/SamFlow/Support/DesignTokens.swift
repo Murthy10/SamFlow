@@ -37,6 +37,12 @@ enum Token {
         static let urgentThreshold: TimeInterval = 60
     }
 
+    /// Sizing for `PulsingBorderView`, the screen-edge overlay that traces the
+    /// session's progress while it runs.
+    enum Border {
+        static let lineWidth: CGFloat = 3
+    }
+
     enum Motion {
         static let progress = Animation.smooth(duration: 0.5)
         static let phase = Animation.smooth(duration: 0.25)

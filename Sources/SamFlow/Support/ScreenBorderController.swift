@@ -56,6 +56,7 @@ final class ScreenBorderController: NSObject {
         case .running, .paused:
             state.isPaused = isPaused
             state.isUrgent = !isPaused && session.remaining <= Token.Ring.urgentThreshold
+            state.progress = session.progress
             if !isShowing { showOverlays() }
         case .idle, .review:
             hideOverlays()
