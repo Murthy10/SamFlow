@@ -11,6 +11,11 @@ enum AppEnvironment {
     @MainActor
     private static var borderController: ScreenBorderController?
 
+    /// Retained for the app's lifetime — it owns the one `NSStatusItem` the
+    /// app has, and nothing else keeps that alive.
+    @MainActor
+    private static var menuBarController: MenuBarController?
+
     /// Builds the one controller the whole app shares, fully wired. Called once,
     /// when the `App` value is created — never from a view's lifecycle, so the
     /// wiring does not depend on which window happens to open first.
@@ -30,10 +35,6 @@ enum AppEnvironment {
             store: store,
             defaultDuration: launchConfiguration.duration ?? .minutes(25)
         )
-        controller.onTimeUp = { _ in
-            NSSound.beep()
-            activate()
-        }
         do {
             try controller.loadHistory()
         } catch {
@@ -41,6 +42,10 @@ enum AppEnvironment {
         }
 
         borderController = ScreenBorderController(observing: controller)
+        // Sets `controller.onTimeUp` itself — showing the review prompt is a
+        // menu bar popover concern now that there is no separate window to
+        // activate.
+        menuBarController = MenuBarController(observing: controller)
         return controller
     }
 

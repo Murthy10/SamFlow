@@ -8,6 +8,13 @@ struct MenuBarContentView: View {
     let controller: SessionController
     @Environment(\.openWindow) private var openWindow
 
+    @State private var goal = ""
+    @FocusState private var goalFieldFocused: Bool
+
+    private var trimmedGoal: String {
+        goal.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Token.Space.base) {
             switch controller.phase {
@@ -45,19 +52,51 @@ struct MenuBarContentView: View {
         .frame(width: 280)
     }
 
+    /// Goal entry, right where the click happened — no separate window stands
+    /// between "click the icon" and "start the session".
     private var idle: some View {
-        VStack(spacing: Token.Space.snug) {
-            Image(systemName: "target")
-                .font(.title2)
-                .foregroundStyle(.secondary)
-            Text("No session running")
-                .foregroundStyle(.secondary)
-            Button("Start a session") { open(WindowID.focus) }
+        VStack(alignment: .leading, spacing: Token.Space.base) {
+            HStack(spacing: Token.Space.base) {
+                ZStack {
+                    Circle()
+                        .fill(Color.flowAccent.opacity(0.15))
+                        .frame(width: Token.Ring.miniDiameter, height: Token.Ring.miniDiameter)
+                    Image(systemName: "target")
+                        .font(.callout)
+                        .foregroundStyle(Color.flowAccent)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("What is the one goal?")
+                        .font(Token.Font.goal)
+                    Text("\(Int(controller.defaultDuration / 60)) minutes")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 0)
+            }
+
+            TextField("Ship the API doc", text: $goal)
+                .textFieldStyle(.plain)
+                .focused($goalFieldFocused)
+                .onSubmit(start)
+                .padding(Token.Space.snug)
+                .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: Token.Radius.control))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Token.Radius.control)
+                        .strokeBorder(goalFieldFocused ? Color.flowAccent : .clear, lineWidth: 2)
+                )
+                .animation(Token.Motion.phase, value: goalFieldFocused)
+
+            Button("Start") { start() }
                 .buttonStyle(.borderedProminent)
                 .tint(.flowAccent)
                 .keyboardShortcut(.defaultAction)
+                .disabled(trimmedGoal.isEmpty)
+                .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
+        .onAppear { goalFieldFocused = true }
     }
 
     private func active(_ session: FocusSession, isPaused: Bool) -> some View {
@@ -104,22 +143,67 @@ struct MenuBarContentView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.flowSuccess)
             }
+
+            Button("Give up") {
+                _ = try? controller.finish(.abandoned)
+            }
+            .buttonStyle(.plain)
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 
+    /// Step three, right here too: the clock ran out, and this popover is the
+    /// only surface left to ask "did you reach it?" on — so time-up forces it
+    /// open (see `MenuBarController`) instead of activating a window.
     private func review(_ session: FocusSession) -> some View {
-        VStack(alignment: .leading, spacing: Token.Space.snug) {
-            Label("Time's up", systemImage: "flag.checkered")
-                .font(.headline)
-                .foregroundStyle(Color.flowAccent)
-            Text(session.goal)
+        VStack(alignment: .leading, spacing: Token.Space.base) {
+            HStack(spacing: Token.Space.base) {
+                ZStack {
+                    Circle()
+                        .fill(Color.flowAccent.opacity(0.15))
+                        .frame(width: Token.Ring.miniDiameter, height: Token.Ring.miniDiameter)
+                    Image(systemName: "flag.checkered")
+                        .font(.callout)
+                        .foregroundStyle(Color.flowAccent)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Time's up")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(session.goal)
+                        .font(Token.Font.goal)
+                        .lineLimit(2)
+                }
+
+                Spacer(minLength: 0)
+            }
+
+            Text("Did you reach it?")
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .lineLimit(2)
-            Button("Review") { open(WindowID.focus) }
+
+            HStack {
+                Button("Not yet") {
+                    _ = try? controller.finish(.missed)
+                }
+                .buttonStyle(.bordered)
+
+                Button("Yes") {
+                    _ = try? controller.finish(.achieved)
+                }
                 .buttonStyle(.borderedProminent)
-                .tint(.flowAccent)
+                .tint(.flowSuccess)
                 .keyboardShortcut(.defaultAction)
+            }
         }
+    }
+
+    private func start() {
+        guard !trimmedGoal.isEmpty else { return }
+        try? controller.start(goal: goal)
+        goal = ""
     }
 
     private func open(_ id: String) {
