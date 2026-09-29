@@ -5,9 +5,9 @@ import SwiftUI
 /// per-appearance variant. Everything else (text, chrome, list backgrounds)
 /// stays on semantic system colors and materials, which already adapt.
 extension Color {
-    /// Signature color: an energetic coral used for progress, primary
+    /// Signature color: a crisp arctic blue used for progress, primary
     /// in-session actions, and small brand touches like the goal-entry icon.
-    static let flowAccent = Color(red: 0.98, green: 0.42, blue: 0.20)
+    static let flowAccent = Color(red: 0.20, green: 0.58, blue: 0.86)
 
     /// Countdown ring and remaining time once under a minute is left.
     static let flowUrgent = Color(red: 0.94, green: 0.24, blue: 0.24)
