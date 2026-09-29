@@ -6,8 +6,8 @@ import SwiftUI
 struct HistoryView: View {
     let controller: SessionController
 
-    private var sessions: [FocusSession] {
-        controller.history.reversed()
+    private var dayGroups: [HistoryDayGroup] {
+        controller.history.groupedByDay()
     }
 
     var body: some View {
@@ -15,7 +15,7 @@ struct HistoryView: View {
             header
             Divider()
 
-            if sessions.isEmpty {
+            if dayGroups.isEmpty {
                 ContentUnavailableView {
                     Label("No sessions yet", systemImage: "target")
                         .foregroundStyle(Color.flowAccent)
@@ -23,20 +23,33 @@ struct HistoryView: View {
                     Text("Finished sessions show up here.")
                 }
             } else {
-                List(sessions) { session in
-                    HistoryRow(session: session)
-                        .padding(.vertical, Token.Space.tight)
-                        .padding(.horizontal, Token.Space.snug)
-                        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: Token.Radius.card))
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 4, leading: Token.Space.base, bottom: 4, trailing: Token.Space.base))
-                        .listRowBackground(Color.clear)
+                List(dayGroups) { group in
+                    Section {
+                        ForEach(group.sessions) { session in
+                            HistoryRow(session: session)
+                                .padding(.vertical, Token.Space.tight)
+                                .padding(.horizontal, Token.Space.snug)
+                                .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: Token.Radius.card))
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 4, leading: Token.Space.base, bottom: 4, trailing: Token.Space.base))
+                                .listRowBackground(Color.clear)
+                        }
+                    } header: {
+                        Text(group.day.historyDayLabel())
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
             }
         }
         .frame(minWidth: 380, minHeight: 260)
+    }
+
+    private var sessionCount: Int {
+        dayGroups.reduce(0) { $0 + $1.sessions.count }
     }
 
     /// Stands in for the window title, which `.hiddenTitleBar` removes.
@@ -47,8 +60,8 @@ struct HistoryView: View {
             Text("History")
                 .font(.headline)
             Spacer()
-            if !sessions.isEmpty {
-                Text("\(sessions.count) session\(sessions.count == 1 ? "" : "s")")
+            if !dayGroups.isEmpty {
+                Text("\(sessionCount) session\(sessionCount == 1 ? "" : "s")")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
