@@ -40,7 +40,7 @@ enum Token {
     /// Sizing for `PulsingBorderView`, the screen-edge overlay that traces the
     /// session's progress while it runs.
     enum Border {
-        static let lineWidth: CGFloat = 3
+        static let lineWidth: CGFloat = 5
     }
 
     enum Motion {
